@@ -61,10 +61,10 @@ public class XrayInformer extends JavaPlugin{
 		params.needType = true;
 		
 		int count_stone = 0;
-		int count_mosyy = 0;
-		int count_lapis = 0;
-		int count_gold = 0;
-		int count_dia = 0;
+		int mat_1_count = 0;
+		int mat_2_count = 0;
+		int mat_3_count = 0;
+		int mat_4_count = 0;
 		
 		// thanks to celticminstrel @ #bukkitdev		
 		int mat_1_id = fileManager.readInt("mat_1_id");
@@ -96,16 +96,16 @@ public class XrayInformer extends JavaPlugin{
 					count_stone++;
 				} else if (bc.replaced == mat_1_id)
 				{
-					count_mosyy++;
+					mat_1_count++;
 				} else if (bc.replaced == mat_2_id)
 				{
-					count_lapis++;
+					mat_2_count++;
 				} else if (bc.replaced == mat_3_id)
 				{
-					count_gold++;
+					mat_3_count++;
 				} else if (bc.replaced == mat_4_id)
 				{
-					count_dia++;
+					mat_4_count++;
 				}
 			}
 	
@@ -117,38 +117,38 @@ public class XrayInformer extends JavaPlugin{
 			String s = "";
 			ChatColor ccolor = ChatColor.GREEN;
 			
-			if (count_dia > 0) { 
-				float d = (float) ((float) count_dia * 100.0 / (float) count_stone);
+			if (mat_1_count > 0) { 
+				float d = (float) ((float) mat_1_count * 100.0 / (float) count_stone);
 				if (d > mat_1_red) { ccolor = ChatColor.RED; } else
 				if (d > mat_1_yellow) { ccolor = ChatColor.YELLOW; } else
 				{ ccolor = ChatColor.GREEN; }
 				
 				s = String.valueOf(d) + "000000000";
-				player.sendMessage(ccolor + mat_1_name + ": " + String.valueOf(Float.parseFloat(s.substring(0,s.lastIndexOf('.')+3))) + "% (" + String.valueOf(count_dia) + ")"); } else { player.sendMessage(mat_1_name+" -"); }
+				player.sendMessage(ccolor + mat_1_name + ": " + String.valueOf(Float.parseFloat(s.substring(0,s.lastIndexOf('.')+3))) + "% (" + String.valueOf(mat_1_count) + ")"); } else { player.sendMessage(mat_1_name+" -"); }
 		
-			if (count_mosyy > 0) { 
-				float d = (float) ((float)count_mosyy * 100.0 / (float) count_stone);
+			if (mat_2_count > 0) { 
+				float d = (float) ((float)mat_2_count * 100.0 / (float) count_stone);
 				if (d > mat_2_red) { ccolor = ChatColor.RED; } else
 				if (d > mat_2_yellow) { ccolor = ChatColor.YELLOW; } else
 				{ ccolor = ChatColor.GREEN; }
 				s = String.valueOf(d) + "000000000";
-				player.sendMessage(ccolor + mat_2_name + ": " + String.valueOf(Float.parseFloat(s.substring(0,s.lastIndexOf('.')+3))) + "% (" + String.valueOf(count_mosyy) + ")"); } else { player.sendMessage(mat_2_name+" -"); }
+				player.sendMessage(ccolor + mat_2_name + ": " + String.valueOf(Float.parseFloat(s.substring(0,s.lastIndexOf('.')+3))) + "% (" + String.valueOf(mat_2_count) + ")"); } else { player.sendMessage(mat_2_name+" -"); }
 			
-			if (count_lapis > 0) { 
-				float d = (float) ((float)count_lapis * 100.0 / (float) count_stone);
+			if (mat_3_count > 0) { 
+				float d = (float) ((float)mat_3_count * 100.0 / (float) count_stone);
 				if (d > mat_3_red) { ccolor = ChatColor.RED; } else
 				if (d > mat_3_yellow) { ccolor = ChatColor.YELLOW; } else
 				{ ccolor = ChatColor.GREEN; }
 				s = String.valueOf(d) + "000000000";
-				player.sendMessage(ccolor + mat_3_name + ": " + String.valueOf(Float.parseFloat(s.substring(0,s.lastIndexOf('.')+3))) + "% (" + String.valueOf(count_lapis) + ")"); } else { player.sendMessage(mat_3_name+" -"); }
+				player.sendMessage(ccolor + mat_3_name + ": " + String.valueOf(Float.parseFloat(s.substring(0,s.lastIndexOf('.')+3))) + "% (" + String.valueOf(mat_3_count) + ")"); } else { player.sendMessage(mat_3_name+" -"); }
 			
-			if (count_gold > 0) { 
-				float d = (float) ((float)count_gold * 100.0 / (float) count_stone);
+			if (mat_4_count > 0) { 
+				float d = (float) ((float)mat_4_count * 100.0 / (float) count_stone);
 				if (d > mat_4_red) { ccolor = ChatColor.RED; } else
 				if (d > mat_4_yellow) { ccolor = ChatColor.YELLOW; } else
 				{ ccolor = ChatColor.GREEN; }
 				s = String.valueOf(d) + "000000000";
-				player.sendMessage(ccolor + mat_4_name + ": " + String.valueOf(Float.parseFloat(s.substring(0,s.lastIndexOf('.')+3))) + "% (" + String.valueOf(count_gold) + ")"); } else { player.sendMessage(mat_4_name+" -"); }
+				player.sendMessage(ccolor + mat_4_name + ": " + String.valueOf(Float.parseFloat(s.substring(0,s.lastIndexOf('.')+3))) + "% (" + String.valueOf(mat_4_count) + ")"); } else { player.sendMessage(mat_4_name+" -"); }
 			}
 		
 		 catch (Exception e) {
