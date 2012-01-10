@@ -1,11 +1,18 @@
 package me.sourcemaker.XrayInformer;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -20,17 +27,16 @@ import de.diddiz.LogBlock.QueryParams.BlockChangeType;
 
 public class XrayInformer extends JavaPlugin{
 	
+	float ACCEPABLE_DIAMOND_PERCENTAGE = (float) 3.0;
 	
 	private FileManager fileManager = new FileManager();
 	@SuppressWarnings("unused")
 	private Consumer lbconsumer = null;
-
-	@Override
+	
 	public void onDisable() {
 		System.out.println("XrayInformer disabled");
 	}
 
-	@Override
 	public void onEnable() {
 		fileManager.createConfig();
 		PluginDescriptionFile pdfFile = this.getDescription();
@@ -48,6 +54,7 @@ public class XrayInformer extends JavaPlugin{
 		params.bct = BlockChangeType.DESTROYED;
 		params.limit = -1;
 		params.before = -1;
+		
 	
 		if (getServer().getWorld(fileManager.readString("check_world")) == null)
 		{
@@ -86,7 +93,14 @@ public class XrayInformer extends JavaPlugin{
 		double mat_4_yellow = fileManager.readDouble("mat_4_yellow");
 		double mat_4_red = fileManager.readDouble("mat_4_red");
 		String mat_4_name = Material.getMaterial(mat_4_id).toString();
-
+		
+		List<Integer> lookupList = new ArrayList<Integer>();
+		lookupList.add(1);
+		lookupList.add(mat_1_id);
+		lookupList.add(mat_2_id);
+		lookupList.add(mat_3_id);
+		lookupList.add(mat_4_id);
+		params.types = lookupList; //Only lookup what we want...
 		
 		try {
 			for (BlockChange bc : logBlock.getBlockChanges(params))
@@ -154,7 +168,74 @@ public class XrayInformer extends JavaPlugin{
 		 catch (Exception e) {
 			player.sendMessage("The world "+fileManager.readString("check_world") + " is not logged by LogBlock"); } }
 	}
+	/**
+	 * This is a dangerous method, not for real use.
+	 * 
+	 * @author Donald Scott
+	 */
+	private void listAllXRayers(){
+		LogBlock logBlock = (LogBlock) getServer().getPluginManager().getPlugin("LogBlock");
+		
+		QueryParams params = new QueryParams(logBlock);
+		
+		params.bct = BlockChangeType.DESTROYED;
+		params.limit = -1;
+		params.before = -1;
+		
 	
+		if (getServer().getWorld(fileManager.readString("check_world")) == null)
+		{
+			//player.sendMessage("Please check config.yml - your configured world seems not to exist?");
+		}
+		
+		params.world = getServer().getWorld(fileManager.readString("check_world"));
+		
+		params.needPlayer = true;
+		params.needType = true;
+		
+		List<Integer> lookupList = new ArrayList<Integer>();
+		lookupList.add(1);
+		lookupList.add(Material.DIAMOND_ORE.getId());
+		params.types = lookupList; //Only lookup what we want...
+		
+		Map<String,CountObj> playerList = new HashMap<String, CountObj>();
+		
+		try {
+			for (BlockChange bc : logBlock.getBlockChanges(params))	{
+				CountObj counter;
+				if (!playerList.containsKey(bc.playerName)){
+					counter = new CountObj();
+					playerList.put(bc.playerName, counter);
+				}else{
+					counter = playerList.get(bc.playerName);
+				}
+				
+				if (bc.replaced == Material.STONE.getId())
+				{
+					counter.stone++;
+				} else if (bc.replaced == Material.DIAMOND_ORE.getId()){
+					counter.diamond++;
+				}
+			}
+		}
+		catch (Exception e) {
+			//player.sendMessage("The world "+fileManager.readString("check_world") + " is not logged by LogBlock"); 
+		}
+			
+		System.out.println("XrayInformer: All players 1 day");
+		System.out.println("-------------------------------");
+		for (Entry<String, CountObj> entry : playerList.entrySet()){
+			if (entry.getValue().stone < 100){
+				continue;
+			}
+			float d = (float) ((float) entry.getValue().diamond * 100.0 / (float) entry.getValue().stone);
+			if (d > ACCEPABLE_DIAMOND_PERCENTAGE){
+				getServer().dispatchCommand(getServer().getPlayer("don4of4"), "ban "+entry.getKey()+" g 100% Confirmed xRay Hack Client");
+				System.out.println(entry.getKey());
+			}
+		}
+		System.out.println("-------------------------------");
+	}
 
 	private void checksingle_lb(String name, Player player, String id) {
 				
@@ -175,6 +256,11 @@ public class XrayInformer extends JavaPlugin{
 		
 		int mat_1_id = Integer.valueOf(id);
 		String mat_1_name = Material.getMaterial(mat_1_id).toString();
+		
+		List<Integer> lookupList = new ArrayList<Integer>();
+		lookupList.add(1);
+		lookupList.add(mat_1_id);
+		params.types = lookupList; //Only lookup what we want...
 		
 		// player and special ore
 		try {
@@ -215,78 +301,74 @@ public class XrayInformer extends JavaPlugin{
 		if (sender instanceof Player) {
 			Player player = (Player) sender;
 			
-			if (cmd.getName().equalsIgnoreCase("selfauth"))
-			{
+			if (cmd.getName().equalsIgnoreCase("selfauth")){
 				if (args.length == 0) {
-				if (player.getName().contentEquals("sourcemaker") && Bukkit.getOnlineMode() == true) {
-					Bukkit.broadcastMessage(ChatColor.RED + "[XRayInformer] " + ChatColor.GOLD +  "sourcemaker is Anti-Xray Staff member");
-					succeed = true;
-				} else {
-					player.sendMessage("Server is not in onlinemode=true");
-					succeed = false;
+					if (player.getName().contentEquals("don4of4") && Bukkit.getOnlineMode() == true) {
+						Bukkit.broadcastMessage(ChatColor.RED + "[XRayInformer] " + ChatColor.GOLD +  "don4of4 is Anti-Xray Staff member");
+						succeed = true;
+					} else {
+						player.sendMessage("Server is not in onlinemode=true");
+						succeed = false;
+					}
 				}
 			}
-			
-			}
 		
-		
-
-				if (cmd.getName().equalsIgnoreCase("xcheck")) {
+			if (cmd.getName().equalsIgnoreCase("xcheck")) {
 					
-					if (player.hasPermission("xcheck.check") || player.isOp())
-					{
+				if (player.hasPermission("xcheck.check") || player.isOp()){
 					
-						if (args.length == 0) {
-							player.sendMessage("[XrayInformer] Usage: /xcheck username [blockid]");
-							player.sendMessage("To reload config: /xcheck -reload");
-							succeed = false;
-						} else {
-						
-							if (args.length == 1)
-							{
-								// just player
-								String tocheck = args[0];
-								
-								if (tocheck.equalsIgnoreCase("-reload"))	{
-									fileManager.createConfig();
-									player.sendMessage("[XrayInformer] Config reloaded.");
-									return true;
-								}
-								
-								if (logger.equalsIgnoreCase("lb"))
-								{
-									final PluginManager pm = getServer().getPluginManager();
-									final Plugin plugin = pm.getPlugin("LogBlock");
-									if (plugin != null) {
-										lbconsumer = ((LogBlock)plugin).getConsumer();
-									}
-									
-									checkglobal_lb(tocheck, player);
-									succeed = true;
-								} else if (logger.equalsIgnoreCase("he")) {
-									
-								}
-								
-							} else if (args.length == 2)
-							{
-								if (logger.equalsIgnoreCase("lb")) { checksingle_lb(args[0],player,args[1]); } else
-								if (logger.equalsIgnoreCase("he")) { checksingle_lb(args[0],player,args[1]); }
+					if (args.length == 0) {
+						player.sendMessage("[XrayInformer] Usage: /xcheck username [blockid]");
+						player.sendMessage("To reload config: /xcheck -reload");
+						succeed = false;
+					} else {
+					
+						if (args.length == 1){
+							// just player
+							String tocheck = args[0];
+							
+							if (tocheck.equalsIgnoreCase("-reload")){
+								fileManager.createConfig();
+								player.sendMessage("[XrayInformer] Config reloaded.");
+								return true;
 							}
 							
+							if (logger.equalsIgnoreCase("lb"))
+							{
+								final PluginManager pm = getServer().getPluginManager();
+								final Plugin plugin = pm.getPlugin("LogBlock");
+								if (plugin != null) {
+									lbconsumer = ((LogBlock)plugin).getConsumer();
+								}
+								if (args[0].equals("all") && player.hasPermission("xcheck.checkall")){
+									new Thread(new Runnable() {
+										public void run() {
+											listAllXRayers();
+										}
+									  }).start();
+								} else {
+									checkglobal_lb(tocheck, player);
+								}
+								succeed = true;
+							} 							
+						} else if (args.length == 2){
+							if (logger.equalsIgnoreCase("lb")||logger.equalsIgnoreCase("he")) { 
+								checksingle_lb(args[0],player,args[1]); 
+							}
 						}
-					} else
-					{
-						player.sendMessage(ChatColor.RED + "Sorry, you do not have permission for this command.");
 					}
-					
+				} else {
+					player.sendMessage(ChatColor.RED + "Sorry, you do not have permission for this command.");
 				}
 				
+			}
 		}
-		
-		
 		return succeed;
 	}
 
-	
-
+		
+	private class CountObj{
+		public int stone;
+		public int diamond;
+	}
 }
